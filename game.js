@@ -155,6 +155,7 @@ let mySlot = -1; // which slot I am (online)
 // ═══════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
+  setupPlayerCountTheme();
   renderBoard();
   updateRoomDisplay();
   if (gameMode === 'offline') {
@@ -166,6 +167,43 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.code === 'Space') { e.preventDefault(); rollDice(); }
   });
 });
+
+function setupPlayerCountTheme() {
+  let count = playerCount;
+  if (gameMode === 'online') {
+    const savedRoomInfo = sessionStorage.getItem('roomInfo');
+    if (savedRoomInfo) {
+      const ri = JSON.parse(savedRoomInfo);
+      count = ri.playerCount;
+    }
+  }
+
+  if (count === 2) {
+    PLAYER_COLOR_NAMES[1] = 'yellow';
+    PLAYER_COLOR_NAMES[2] = 'green';
+    
+    PLAYER_COLORS_HEX[1]  = '#FDD835';
+    PLAYER_COLORS_HEX[2]  = '#43A047';
+    
+    PLAYER_COLORS_DARK[1] = '#F57F17';
+    PLAYER_COLORS_DARK[2] = '#1B5E20';
+    
+    PLAYER_COLORS_LIGHT[1] = '#fff9c4';
+    PLAYER_COLORS_LIGHT[2] = '#c8e6c9';
+  } else {
+    PLAYER_COLOR_NAMES[1] = 'green';
+    PLAYER_COLOR_NAMES[2] = 'yellow';
+    
+    PLAYER_COLORS_HEX[1]  = '#43A047';
+    PLAYER_COLORS_HEX[2]  = '#FDD835';
+    
+    PLAYER_COLORS_DARK[1] = '#1B5E20';
+    PLAYER_COLORS_DARK[2] = '#F57F17';
+    
+    PLAYER_COLORS_LIGHT[1] = '#c8e6c9';
+    PLAYER_COLORS_LIGHT[2] = '#fff9c4';
+  }
+}
 
 function updateRoomDisplay() {
   if (gameMode === 'online' && roomId) {

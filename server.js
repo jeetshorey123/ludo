@@ -171,10 +171,11 @@ wss.on('connection', (ws) => {
         if (room.players.length >= room.playerCount) { sendTo(ws, { type: 'error', message: 'Room is full!' }); return; }
 
         const slot = room.players.length;
+        const color = (room.playerCount === 2 && slot === 1) ? 'yellow' : PLAYER_COLORS[slot];
         const player = {
           id: ws.playerId,
           name: msg.name || `Player ${slot + 1}`,
-          color: PLAYER_COLORS[slot],
+          color,
           ws,
           ready: true,
           slot,
