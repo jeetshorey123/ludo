@@ -891,16 +891,15 @@ input  { font-family: inherit; }
 
 .motion-blur-video {
   position: absolute;
-  width: 20%;
-  height: 70%;
-  border-radius: 20px;
+  width: 280px;
+  height: 480px;
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(5px);
-  /* Slow Shutter motion blur styling */
-  filter: contrast(1.15) brightness(0.8) saturate(1.2);
-  animation: slow-shutter-glow 6s ease-in-out infinite alternate;
+  filter: contrast(1.15) brightness(0.85) saturate(1.25);
+  animation: slow-shutter-glow 8s ease-in-out infinite alternate;
 }
 
 .motion-blur-video video {
@@ -912,32 +911,57 @@ input  { font-family: inherit; }
 
 /* Slow Motion blur breathing animation */
 @keyframes slow-shutter-glow {
-  0%, 100% { filter: blur(0px) brightness(0.85); transform: scale(1); }
-  50% { filter: blur(2px) brightness(0.95); transform: scale(1.03); }
+  0%, 100% { filter: blur(0px) brightness(0.9); transform: scale(1); }
+  50% { filter: blur(2px) brightness(1.0); transform: scale(1.04); }
 }
 
-/* Position left/right videos flanking the board */
+/* Position left/right videos flanking the board on large screens */
 .left-video {
-  left: -24%;
-  top: 15%;
+  left: -320px;
+  top: 50px;
   transform: rotate(-3deg);
 }
 .right-video {
-  right: -24%;
-  top: 15%;
+  right: -320px;
+  top: 50px;
   transform: rotate(3deg);
 }
 
-/* Mobile responsive styling for game videos */
-@media (max-width: 900px) {
+@media (max-width: 1250px) {
   .motion-blur-video {
-    width: 25% !important; /* Slightly larger on mobile but tucked closer */
-    height: 70% !important;
+    width: 180px;
+    height: 300px;
   }
   .left-video {
-    left: -12% !important; /* Tucked closer under the board */
+    left: -200px;
+    top: 100px;
   }
   .right-video {
-    right: -12% !important; /* Tucked closer under the board */
+    right: -200px;
+    top: 100px;
+  }
+}
+
+/* Mobile responsive styling for game videos: arrange below board and above dice controls */
+@media (max-width: 990px) {
+  .game-video-overlays {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 24px;
+    width: 100%;
+    margin: 20px 0;
+    z-index: 1;
+  }
+  .motion-blur-video {
+    position: relative;
+    width: 140px;
+    height: 220px;
+    left: unset !important;
+    right: unset !important;
+    top: unset !important;
+    transform: none !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   }
 }
