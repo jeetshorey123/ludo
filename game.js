@@ -12,12 +12,26 @@ const myPlayerId  = sessionStorage.getItem('playerId')    || '';
 const isHost      = sessionStorage.getItem('isHost')      === '1';
 const cutieModeOn = sessionStorage.getItem('cutieMode')   === '1';
 
+// ─── Browser Back Button Redirection ──────────────────
+history.pushState(null, null, location.href);
+window.onpopstate = function() {
+  window.location.href = 'index.html';
+};
+
 // ─── Apply Theme ──────────────────────────────────────
 if (cutieModeOn) document.getElementById('gameBody').classList.add('cutie-mode');
 if (roomType === 'lovers') {
   document.getElementById('gameBody').classList.add('lovers-room');
   document.getElementById('loveButtons').classList.remove('hidden');
   document.getElementById('loveBtnContainer').classList.remove('hidden');
+}
+if (cutieModeOn || roomType === 'lovers') {
+  document.getElementById('gameVideoOverlays')?.classList.remove('hidden');
+  const videos = document.querySelectorAll('#gameVideoOverlays video');
+  videos.forEach(v => {
+    v.muted = true;
+    v.play().catch(e => console.log('Game video play failed:', e));
+  });
 }
 
 // ─── Particles ───────────────────────────────────────
