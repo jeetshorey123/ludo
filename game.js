@@ -180,40 +180,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupPlayerCountTheme() {
-  let count = playerCount;
-  if (gameMode === 'online') {
-    const savedRoomInfo = sessionStorage.getItem('roomInfo');
-    if (savedRoomInfo) {
-      const ri = JSON.parse(savedRoomInfo);
-      count = ri.playerCount;
-    }
-  }
-
-  if (count === 2) {
-    PLAYER_COLOR_NAMES[1] = 'yellow';
-    PLAYER_COLOR_NAMES[2] = 'green';
-    
-    PLAYER_COLORS_HEX[1]  = '#FDD835';
-    PLAYER_COLORS_HEX[2]  = '#43A047';
-    
-    PLAYER_COLORS_DARK[1] = '#F57F17';
-    PLAYER_COLORS_DARK[2] = '#1B5E20';
-    
-    PLAYER_COLORS_LIGHT[1] = '#fff9c4';
-    PLAYER_COLORS_LIGHT[2] = '#c8e6c9';
-  } else {
-    PLAYER_COLOR_NAMES[1] = 'green';
-    PLAYER_COLOR_NAMES[2] = 'yellow';
-    
-    PLAYER_COLORS_HEX[1]  = '#43A047';
-    PLAYER_COLORS_HEX[2]  = '#FDD835';
-    
-    PLAYER_COLORS_DARK[1] = '#1B5E20';
-    PLAYER_COLORS_DARK[2] = '#F57F17';
-    
-    PLAYER_COLORS_LIGHT[1] = '#c8e6c9';
-    PLAYER_COLORS_LIGHT[2] = '#fff9c4';
-  }
+  // Always keep standard color configuration mapping since Red and Yellow naturally align opposite corners at slots 0 and 2.
+  PLAYER_COLOR_NAMES[1] = 'green';
+  PLAYER_COLOR_NAMES[2] = 'yellow';
+  
+  PLAYER_COLORS_HEX[1]  = '#43A047';
+  PLAYER_COLORS_HEX[2]  = '#FDD835';
+  
+  PLAYER_COLORS_DARK[1] = '#1B5E20';
+  PLAYER_COLORS_DARK[2] = '#F57F17';
+  
+  PLAYER_COLORS_LIGHT[1] = '#c8e6c9';
+  PLAYER_COLORS_LIGHT[2] = '#fff9c4';
 }
 
 function updateRoomDisplay() {
@@ -226,34 +204,58 @@ function updateRoomDisplay() {
   }
 }
 
-// ─── Offline Init ──────────────────────────────────────
 function initOfflineGame() {
-  const pCount = Math.min(playerCount, 4); // board supports 4 slots
-  gameState.players = Array.from({length:pCount}, (_,i) => ({
-    id:   'p'+i,
-    name: i===0 ? myName : `Player ${i+1}`,
-    color: PLAYER_COLOR_NAMES[i],
-    colorHex: PLAYER_COLORS_HEX[i],
-    slot: i,
-    pieces: [-1,-1,-1,-1],
-    piecesWon: 0,
-    finished: false,
-  }));
+  const pCount = Math.min(playerCount, 4);
+  if (pCount === 2) {
+    // Player 1 is Red (slot 0), Player 2 is Yellow (slot 2) - opposite corners
+    gameState.players = [
+      {
+        id: 'p0',
+        name: myName,
+        color: PLAYER_COLOR_NAMES[0],
+        colorHex: PLAYER_COLORS_HEX[0],
+        slot: 0,
+        pieces: [-1,-1,-1,-1],
+        piecesWon: 0,
+        finished: false,
+      },
+      {
+        id: 'p1',
+        name: 'Player 2',
+        color: PLAYER_COLOR_NAMES[2],
+        colorHex: PLAYER_COLORS_HEX[2],
+        slot: 2,
+        pieces: [-1,-1,-1,-1],
+        piecesWon: 0,
+        finished: false,
+      }
+    ];
+  } else {
+    gameState.players = Array.from({length:pCount}, (_,i) => ({
+      id:   'p'+i,
+      name: i===0 ? myName : `Player ${i+1}`,
+      color: PLAYER_COLOR_NAMES[i],
+      colorHex: PLAYER_COLORS_HEX[i],
+      slot: i,
+      pieces: [-1,-1,-1,-1],
+      piecesWon: 0,
+      finished: false,
+    }));
+  }
   gameState.currentPlayer = 0;
   renderPlayersBar();
   drawPieces();
   updateTurnDisplay();
 }
 
-// ─── Online Init ───────────────────────────────────────
 function initOnlineGame() {
   const savedRoomInfo = sessionStorage.getItem('roomInfo');
   if (savedRoomInfo) {
     const ri = JSON.parse(savedRoomInfo);
     gameState.players = ri.players.map((p,i) => ({
       id: p.id, name: p.name,
-      color: PLAYER_COLOR_NAMES[i], colorHex: PLAYER_COLORS_HEX[i],
-      slot: i, pieces: [-1,-1,-1,-1], piecesWon: 0, finished: false,
+      color: PLAYER_COLOR_NAMES[p.slot], colorHex: PLAYER_COLORS_HEX[p.slot],
+      slot: p.slot, pieces: [-1,-1,-1,-1], piecesWon: 0, finished: false,
     }));
     gameState.currentPlayer = 0;
     mySlot = gameState.players.findIndex(p => p.id === myPlayerId);
@@ -501,14 +503,14 @@ function drawPieces() {
     player.pieces.forEach((pos, ii) => {
       let key = null;
       if (pos === -1) {
-        key = `base_${pi}_${ii}`;
+        key = `base_${player.slot}_${ii}`;
       } else if (pos === 999) {
-        key = `won_${pi}_${ii}`;
+        key = `won_${player.slot}_${ii}`;
       } else if (pos >= 100) {
-        const step = Math.min(pos - 100, HOME_COLS[pi].length - 1);
-        key = `homecol_${pi}_${step}`;
+        const step = Math.min(pos - 100, HOME_COLS[player.slot].length - 1);
+        key = `homecol_${player.slot}_${step}`;
       } else {
-        const absPos = (PLAYER_START[pi] + pos) % TRACK_SIZE;
+        const absPos = (PLAYER_START[player.slot] + pos) % TRACK_SIZE;
         key = `main_${absPos}`;
       }
       if (!cellGroups[key]) cellGroups[key] = [];
@@ -517,19 +519,19 @@ function drawPieces() {
   });
 
   gameState.players.forEach((player, pi) => {
-    const hex  = player.colorHex || PLAYER_COLORS_HEX[pi];
-    const dark = PLAYER_COLORS_DARK[pi];
-    const lite = PLAYER_COLORS_LIGHT[pi];
+    const hex  = player.colorHex || PLAYER_COLORS_HEX[player.slot];
+    const dark = PLAYER_COLORS_DARK[player.slot];
+    const lite = PLAYER_COLORS_LIGHT[player.slot];
 
     player.pieces.forEach((pos, ii) => {
       let key = null;
-      if (pos === -1)             key = `base_${pi}_${ii}`;
-      else if (pos === 999)       key = `won_${pi}_${ii}`;
+      if (pos === -1)             key = `base_${player.slot}_${ii}`;
+      else if (pos === 999)       key = `won_${player.slot}_${ii}`;
       else if (pos >= 100) {
-        const step = Math.min(pos - 100, HOME_COLS[pi].length - 1);
-        key = `homecol_${pi}_${step}`;
+        const step = Math.min(pos - 100, HOME_COLS[player.slot].length - 1);
+        key = `homecol_${player.slot}_${step}`;
       } else {
-        const absPos = (PLAYER_START[pi] + pos) % TRACK_SIZE;
+        const absPos = (PLAYER_START[player.slot] + pos) % TRACK_SIZE;
         key = `main_${absPos}`;
       }
 
@@ -552,7 +554,7 @@ function drawPieces() {
         ][groupIdx % 4];
       }
 
-      const baseXY = getPieceXY(pi, ii, pos);
+      const baseXY = getPieceXY(player.slot, ii, pos);
       const x = baseXY.x + off.x;
       const y = baseXY.y + off.y;
 
@@ -592,7 +594,7 @@ function drawPieces() {
 
       // Won pieces at center
       if (pos === 999) {
-        const {x:wx, y:wy} = getPieceXY(pi, ii, 999);
+        const {x:wx, y:wy} = getPieceXY(player.slot, ii, 999);
         addCircle(layer, wx, wy+1, R*0.7, 'rgba(0,0,0,0.25)');
         addCircle(layer, wx, wy, R*0.7, hex, dark, 1.5);
         addCircle(layer, wx-R*0.2, wy-R*0.2, R*0.15, 'rgba(255,255,255,0.5)');
