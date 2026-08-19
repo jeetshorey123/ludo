@@ -895,11 +895,40 @@ input  { font-family: inherit; }
   height: 480px;
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 15px 45px rgba(0,0,0,0.5);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.65), 0 0 30px rgba(255, 100, 120, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.22);
   backdrop-filter: blur(5px);
   filter: contrast(1.15) brightness(0.85) saturate(1.25);
-  animation: slow-shutter-glow 8s ease-in-out infinite alternate;
+}
+
+/* Cinematic film vignette overlay */
+.motion-blur-video::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, transparent 35%, rgba(0,0,0,0.5) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Retro Slow Shutter Camera HUD */
+.motion-blur-video::before {
+  content: 'REC ● 24 FPS';
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'monospace';
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  z-index: 3;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.6);
+  animation: blinkRec 1.2s step-end infinite;
+}
+
+@keyframes blinkRec {
+  50% { opacity: 0.25; }
 }
 
 .motion-blur-video video {
@@ -907,24 +936,45 @@ input  { font-family: inherit; }
   height: 100%;
   object-fit: cover;
   mix-blend-mode: normal;
-}
-
-/* Slow Motion blur breathing animation */
-@keyframes slow-shutter-glow {
-  0%, 100% { filter: blur(0px) brightness(0.9); transform: scale(1); }
-  50% { filter: blur(2px) brightness(1.0); transform: scale(1.04); }
+  position: relative;
+  z-index: 1;
 }
 
 /* Position left/right videos flanking the board on large screens */
 .left-video {
   left: -320px;
   top: 50px;
-  transform: rotate(-3deg);
+  transform-origin: center center;
+  animation: slow-shutter-glow-left 9s ease-in-out infinite alternate;
 }
 .right-video {
   right: -320px;
   top: 50px;
-  transform: rotate(3deg);
+  transform-origin: center center;
+  animation: slow-shutter-glow-right 9s ease-in-out infinite alternate;
+}
+
+/* Lens breathing + rotation slow shutter animations */
+@keyframes slow-shutter-glow-left {
+  0%, 100% {
+    filter: blur(1.5px) contrast(1.1) brightness(0.85) saturate(1.2);
+    transform: scale(1) rotate(-3deg);
+  }
+  50% {
+    filter: blur(4.5px) contrast(1.15) brightness(0.95) saturate(1.3);
+    transform: scale(1.03) rotate(-1deg);
+  }
+}
+
+@keyframes slow-shutter-glow-right {
+  0%, 100% {
+    filter: blur(1.5px) contrast(1.1) brightness(0.85) saturate(1.2);
+    transform: scale(1) rotate(3deg);
+  }
+  50% {
+    filter: blur(4.5px) contrast(1.15) brightness(0.95) saturate(1.3);
+    transform: scale(1.03) rotate(1deg);
+  }
 }
 
 @media (max-width: 1250px) {
