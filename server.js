@@ -103,7 +103,7 @@ function getRoomInfo(room) {
 }
 
 // Player colors by slot
-const PLAYER_COLORS = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan'];
+const PLAYER_COLORS = ['red', 'green', 'yellow', 'blue', 'purple', 'orange', 'pink', 'cyan'];
 
 wss.on('connection', (ws) => {
   ws.playerId = Math.random().toString(36).substr(2, 9);
@@ -170,8 +170,8 @@ wss.on('connection', (ws) => {
         if (room.started) { sendTo(ws, { type: 'error', message: 'Game already started!' }); return; }
         if (room.players.length >= room.playerCount) { sendTo(ws, { type: 'error', message: 'Room is full!' }); return; }
 
-        const slot = room.players.length;
-        const color = (room.playerCount === 2 && slot === 1) ? 'yellow' : PLAYER_COLORS[slot];
+        const slot = (room.playerCount === 2 && room.players.length === 1) ? 2 : room.players.length;
+        const color = PLAYER_COLORS[slot];
         const player = {
           id: ws.playerId,
           name: msg.name || `Player ${slot + 1}`,
@@ -198,6 +198,7 @@ wss.on('connection', (ws) => {
         room.gameState = buildInitialGameState(room);
         broadcastAll(room, { type: 'game-started', gameState: room.gameState, roomInfo: getRoomInfo(room) });
         console.log(`Game started in room ${room.id}`);
+        resetTurnTimer(room);
         break;
       }
 
@@ -224,7 +225,15 @@ wss.on('connection', (ws) => {
           }
         }
 
-        broadcastAll(room, { type: 'dice-rolled', playerId: ws.playerId, roll, gameState: gs, loveQuestion });
+        if (!hasAnyMoveServer(gs, pIdx)) {
+          gs.diceRolled = false;
+          advanceTurnServer(room);
+          broadcastAll(room, { type: 'dice-rolled', playerId: ws.playerId, roll, gameState: gs, loveQuestion, noMoves: true });
+          resetTurnTimer(room);
+        } else {
+          broadcastAll(room, { type: 'dice-rolled', playerId: ws.playerId, roll, gameState: gs, loveQuestion });
+          resetTurnTimer(room);
+        }
         break;
       }
 
@@ -232,24 +241,37 @@ wss.on('connection', (ws) => {
         const room = rooms.get(ws.roomId);
         if (!room) return;
         const gs = room.gameState;
-        if (msg.yes) {
-          gs.lastRoll = 6; // Gift a 6
-          const asker = room.players.find(p => p.id === ws.playerId);
-          const target = room.players.find(p => p.id !== ws.playerId);
+        const pIdx = room.players.findIndex(p => p.id === ws.playerId);
+        
+        let answerYes = msg.yes;
+        if (answerYes) {
+          gs.lastRoll = 6;
+        }
+
+        const asker = room.players.find(p => p.id === ws.playerId);
+        const target = room.players.find(p => p.id !== ws.playerId);
+
+        if (!hasAnyMoveServer(gs, pIdx)) {
+          gs.diceRolled = false;
+          advanceTurnServer(room);
           broadcastAll(room, {
             type: 'love-answer',
-            yes: true,
+            yes: answerYes,
+            askerName: asker?.name,
+            targetName: target?.name,
+            gameState: gs,
+            noMoves: true
+          });
+          resetTurnTimer(room);
+        } else {
+          broadcastAll(room, {
+            type: 'love-answer',
+            yes: answerYes,
             askerName: asker?.name,
             targetName: target?.name,
             gameState: gs,
           });
-        } else {
-          // If answer is NO, keep original roll (already set in gs.lastRoll)
-          broadcastAll(room, {
-            type: 'love-answer',
-            yes: false,
-            gameState: gs,
-          });
+          resetTurnTimer(room);
         }
         break;
       }
@@ -269,8 +291,9 @@ wss.on('connection', (ws) => {
 
         // Next turn (unless rolled 6 or killed)
         if (!result.rolledSix && !result.killed) {
-          gs.currentPlayer = (gs.currentPlayer + 1) % room.players.length;
+          advanceTurnServer(room);
         }
+        resetTurnTimer(room);
 
         // Check win
         const winner = checkWinner(gs, pIdx);
@@ -337,7 +360,7 @@ function buildInitialGameState(room) {
     id: p.id,
     name: p.name,
     color: p.color,
-    slot: i,
+    slot: p.slot,
     pieces: [-1, -1, -1, -1], // -1 = in home base
     finished: false,
   }));
@@ -420,6 +443,68 @@ function checkWinner(gs, playerIdx) {
     return playerIdx;
   }
   return null;
+}
+
+function canMovePieceServer(gs, playerIdx, pieceIdx) {
+  const player = gs.players[playerIdx];
+  const roll = gs.lastRoll;
+  if (!player) return false;
+  const pos = player.pieces[pieceIdx];
+  if (pos === 999) return false;
+  if (pos === -1) return roll === 6;
+  
+  if (pos >= 100) {
+    const homeStep = pos - 100;
+    return (homeStep + roll) <= 6;
+  }
+  
+  const newRelPos = pos + roll;
+  return newRelPos <= WIN_REL;
+}
+
+function hasAnyMoveServer(gs, playerIdx) {
+  const player = gs.players[playerIdx];
+  if (!player) return false;
+  return player.pieces.some((_, ii) => canMovePieceServer(gs, playerIdx, ii));
+}
+
+function advanceTurnServer(room) {
+  const gs = room.gameState;
+  const np = room.players.length;
+  let next = (gs.currentPlayer + 1) % np;
+  let tries = 0;
+  while (room.players[next].finished && tries < np) {
+    next = (next + 1) % np;
+    tries++;
+  }
+  gs.currentPlayer = next;
+  gs.diceRolled = false;
+  gs.lastRoll = 0;
+}
+
+function resetTurnTimer(room) {
+  if (room.turnTimeout) clearTimeout(room.turnTimeout);
+  room.turnTimeout = setTimeout(() => {
+    const gs = room.gameState;
+    if (!gs || !room.started) return;
+    
+    console.log(`Room ${room.id}: player index ${gs.currentPlayer} timed out.`);
+    
+    // Automatically advance the turn
+    gs.diceRolled = false;
+    gs.lastRoll = 0;
+    advanceTurnServer(room);
+    
+    // Broadcast the timeout and new turn
+    broadcastAll(room, {
+      type: 'turn-timeout',
+      gameState: gs,
+      message: `Turn timed out! Next player's turn.`
+    });
+    
+    // Start the timer for the next turn
+    resetTurnTimer(room);
+  }, 60000);
 }
 
 server.listen(PORT, () => {

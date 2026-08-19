@@ -160,6 +160,8 @@ let gameState = {
 let ws = null;
 let pendingLoveQuestion = null;
 let mySlot = -1; // which slot I am (online)
+let turnCountdown = null;
+let turnSecondsLeft = 60;
 
 // ═══════════════════════════════════════════════════════
 //  INIT
@@ -174,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     initOnlineGame();
   }
+  startTurnTimer();
   document.addEventListener('keydown', e => {
     if (e.code === 'Space') { e.preventDefault(); rollDice(); }
   });
@@ -793,6 +796,7 @@ function advanceTurn() {
   document.getElementById('dice').textContent = '🎲';
   updateTurnDisplay();
   drawPieces();
+  startTurnTimer();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -899,12 +903,40 @@ function launchConfetti() {
 function updateTurnDisplay() {
   const p = gameState.players[gameState.currentPlayer];
   if (!p) return;
-  document.getElementById('turnDisplay').textContent =
-    gameMode === 'online' && gameState.currentPlayer === mySlot
-      ? `🎯 YOUR TURN — Roll the dice!`
-      : `🎲 ${p?.name || '?'}'s turn`;
   document.getElementById('rollBtn').disabled = gameState.diceRolled;
   renderPlayersBar();
+  updateTimerDisplay();
+}
+
+function startTurnTimer() {
+  if (turnCountdown) clearInterval(turnCountdown);
+  turnSecondsLeft = 60;
+  updateTimerDisplay();
+
+  turnCountdown = setInterval(() => {
+    turnSecondsLeft--;
+    if (turnSecondsLeft <= 0) {
+      clearInterval(turnCountdown);
+      if (gameMode === 'offline') {
+        showToast('Turn timed out!', 'error');
+        advanceTurn();
+      }
+    } else {
+      updateTimerDisplay();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const p = gameState.players[gameState.currentPlayer];
+  if (!p) return;
+  const isMyTurn = (gameMode === 'online' && gameState.currentPlayer === mySlot);
+  
+  const text = isMyTurn
+    ? `🎯 YOUR TURN (${turnSecondsLeft}s) — Roll the dice!`
+    : `🎲 ${p.name}'s turn (${turnSecondsLeft}s)`;
+    
+  document.getElementById('turnDisplay').textContent = text;
 }
 
 function renderPlayersBar() {
@@ -951,11 +983,12 @@ function handleOnlineMessage(event) {
     case 'rejoined':
       if (msg.gameState) {
         gameState = msg.gameState;
-        gameState.players.forEach((p,i) => { p.colorHex = PLAYER_COLORS_HEX[i]; p.piecesWon = p.piecesWon||0; });
+        gameState.players.forEach((p,i) => { p.colorHex = PLAYER_COLORS_HEX[p.slot]; p.piecesWon = p.piecesWon||0; });
       }
       mySlot = gameState.players.findIndex(p => p.id === myPlayerId);
       showToast('Reconnected ✅', 'success');
       renderPlayersBar(); drawPieces(); updateTurnDisplay();
+      startTurnTimer();
       break;
 
     case 'player-reconnected':
@@ -965,10 +998,18 @@ function handleOnlineMessage(event) {
     case 'dice-rolled':
       gameState.lastRoll  = msg.roll;
       gameState.diceRolled = true;
-      if (msg.gameState) Object.assign(gameState, msg.gameState);
+      if (msg.gameState) {
+        gameState = msg.gameState;
+        gameState.players.forEach((p,i) => { p.colorHex = PLAYER_COLORS_HEX[p.slot]; p.piecesWon = p.piecesWon||0; });
+      }
       animateDice(msg.roll);
       document.getElementById('lastRollDisplay').textContent = msg.roll;
+      
+      if (msg.noMoves) {
+        showToast('No moves available — skipping turn', 'error');
+      }
       updateTurnDisplay(); drawPieces();
+      startTurnTimer();
 
       if (msg.loveQuestion) {
         pendingLoveQuestion = msg.loveQuestion;
@@ -984,9 +1025,10 @@ function handleOnlineMessage(event) {
     case 'piece-moved':
       if (msg.gameState) {
         gameState = msg.gameState;
-        gameState.players.forEach((p,i) => { p.colorHex=PLAYER_COLORS_HEX[i]; p.piecesWon=p.piecesWon||0; });
+        gameState.players.forEach((p,i) => { p.colorHex=PLAYER_COLORS_HEX[p.slot]; p.piecesWon=p.piecesWon||0; });
       }
       drawPieces(); updateTurnDisplay();
+      startTurnTimer();
       break;
 
     case 'love-answer':
@@ -997,9 +1039,27 @@ function handleOnlineMessage(event) {
         document.getElementById('lastRollDisplay').textContent = '6';
         showLovePopup(`💖 ${msg.askerName} loves ${msg.targetName}!`);
         triggerLoveShower('heart');
-        drawPieces(); updateTurnDisplay();
+      }
+      if (msg.gameState) {
+        gameState = msg.gameState;
+        gameState.players.forEach((p,i) => { p.colorHex=PLAYER_COLORS_HEX[p.slot]; p.piecesWon=p.piecesWon||0; });
+      }
+      if (msg.noMoves) {
+        showToast('No moves available — skipping turn', 'error');
       }
       document.getElementById('loveModal').classList.add('hidden');
+      drawPieces(); updateTurnDisplay();
+      startTurnTimer();
+      break;
+
+    case 'turn-timeout':
+      if (msg.gameState) {
+        gameState = msg.gameState;
+        gameState.players.forEach((p,i) => { p.colorHex=PLAYER_COLORS_HEX[p.slot]; p.piecesWon=p.piecesWon||0; });
+      }
+      showToast(msg.message || 'Turn timed out!', 'error');
+      drawPieces(); updateTurnDisplay();
+      startTurnTimer();
       break;
 
     case 'love-shower':
