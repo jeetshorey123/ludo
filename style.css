@@ -600,7 +600,7 @@ input  { font-family: inherit; }
 /* Board */
 .board-wrap {
   position:relative;
-  border-radius:12px; overflow:hidden;
+  border-radius:12px; overflow:visible;
   box-shadow:0 0 60px rgba(0,0,0,0.7), 0 0 20px rgba(0,245,255,0.06);
   cursor:pointer;
 }
@@ -870,26 +870,32 @@ input  { font-family: inherit; }
   }
 }
 
-/* Dreamy Floating Video Overlays (Game page) */
+/* Dreamy Floating Video Overlays (Game page - flanked behind the board) */
 .game-video-overlays {
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 1; /* behind board-wrap but in front of background image */
+  z-index: 1; /* sits behind the SVG board (which has z-index: 2) */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 4vw;
-  opacity: 0.8;
+  padding: 0;
+  opacity: 0.82;
+  overflow: visible;
+}
+
+#board-svg {
+  position: relative;
+  z-index: 2; /* Keeps board in front of videos */
 }
 
 .motion-blur-video {
-  width: 14vw;
-  height: 25vw;
+  position: absolute;
+  width: 20%;
+  height: 70%;
   border-radius: 20px;
   overflow: hidden;
-  position: relative;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
   border: 1px solid rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(5px);
   /* Slow Shutter motion blur styling */
@@ -910,33 +916,28 @@ input  { font-family: inherit; }
   50% { filter: blur(2px) brightness(0.95); transform: scale(1.03); }
 }
 
-/* Position left/right videos */
+/* Position left/right videos flanking the board */
 .left-video {
+  left: -24%;
+  top: 15%;
   transform: rotate(-3deg);
 }
 .right-video {
+  right: -24%;
+  top: 15%;
   transform: rotate(3deg);
 }
 
 /* Mobile responsive styling for game videos */
 @media (max-width: 900px) {
-  .game-video-overlays {
-    position: relative;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    justify-content: space-between;
-    padding: 0 1rem;
-    height: auto;
-    width: 100%;
-    z-index: 2;
-    display: flex;
-    margin-top: 1rem;
-  }
   .motion-blur-video {
-    width: 48% !important;
-    height: 140px !important;
-    border-radius: 12px;
+    width: 25% !important; /* Slightly larger on mobile but tucked closer */
+    height: 70% !important;
+  }
+  .left-video {
+    left: -12% !important; /* Tucked closer under the board */
+  }
+  .right-video {
+    right: -12% !important; /* Tucked closer under the board */
   }
 }
