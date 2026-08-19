@@ -27,6 +27,17 @@ if (roomType === 'lovers') {
 }
 if (cutieModeOn || roomType === 'lovers') {
   document.getElementById('gameVideoOverlays')?.classList.remove('hidden');
+  const playVideos = () => {
+    const videos = document.querySelectorAll('#gameVideoOverlays video');
+    videos.forEach(v => {
+      v.muted = true;
+      v.play().catch(e => console.log('Interactive play failed:', e));
+    });
+  };
+  document.addEventListener('click', playVideos, { once: true });
+  document.addEventListener('touchstart', playVideos, { once: true });
+  
+  // Try immediate autoplay
   const videos = document.querySelectorAll('#gameVideoOverlays video');
   videos.forEach(v => {
     v.muted = true;
