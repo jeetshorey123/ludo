@@ -209,7 +209,7 @@ wss.on('connection', (ws) => {
         const pIdx = room.players.findIndex(p => p.id === ws.playerId);
         if (pIdx !== gs.currentPlayer) return; // Not your turn
 
-        const roll = Math.ceil(Math.random() * 6);
+        const roll = getBalancedRoll(gs, pIdx);
         gs.lastRoll = roll;
         gs.diceRolled = true;
         room.moveCount++;
@@ -435,6 +435,50 @@ function applyMove(gs, playerIdx, pieceIdx) {
   }
 
   return { valid: true, killed, rolledSix };
+}
+
+function getBalancedRoll(gs, playerIdx) {
+  const player = gs.players[playerIdx];
+  if (!player) return Math.floor(Math.random() * 6) + 1;
+
+  if (player.rollsSinceLastSix === undefined) player.rollsSinceLastSix = 0;
+  
+  if (player.rollsSinceLastSix >= 9) {
+    player.rollsSinceLastSix = 0;
+    return 6;
+  }
+
+  const progresses = gs.players.map(p => {
+    let pSum = 0;
+    p.pieces.forEach(pos => {
+      if (pos === 999) pSum += 57;
+      else if (pos >= 100) pSum += (pos - 100) + 51;
+      else if (pos > 0) pSum += pos;
+    });
+    return pSum;
+  });
+
+  const maxProg = Math.max(...progresses);
+  const minProg = Math.min(...progresses);
+  const myProg = progresses[playerIdx];
+
+  let rollChance = [1, 2, 3, 4, 5, 6];
+
+  if (maxProg - myProg > 20) {
+    rollChance = [1, 2, 3, 4, 5, 6, 6, 6, 5, 6];
+  } else if (myProg - minProg > 25 && gs.players.length > 1) {
+    rollChance = [1, 2, 3, 4, 5, 1, 2, 3, 4, 5];
+  }
+
+  const roll = rollChance[Math.floor(Math.random() * rollChance.length)];
+  
+  if (roll === 6) {
+    player.rollsSinceLastSix = 0;
+  } else {
+    player.rollsSinceLastSix++;
+  }
+
+  return roll;
 }
 
 function checkWinner(gs, playerIdx) {
