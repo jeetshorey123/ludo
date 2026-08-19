@@ -167,7 +167,8 @@ function selectRoomType(type) {
   selectedRoomType = type;
   document.getElementById('friendsTypeBtn').classList.toggle('selected', type==='friends');
   document.getElementById('loversTypeBtn').classList.toggle('selected',  type==='lovers');
-}// Initialize Server URL Input on page load
+}
+// Initialize Server URL Input on page load
 document.addEventListener('DOMContentLoaded', () => {
   const serverInput = document.getElementById('serverUrl');
   if (serverInput) {
@@ -175,8 +176,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) {
       serverInput.value = saved;
     } else {
-      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-      serverInput.value = `${proto}//${location.host}`;
+      const isLocal = ['localhost', '127.0.0.1', '192.168.29.63'].includes(location.hostname);
+      serverInput.value = isLocal ? `ws://${location.hostname}:3000` : `wss://ludo-ole4.onrender.com`;
     }
   }
 });
@@ -188,8 +189,8 @@ function connectWS(callback) {
   const serverUrlInput = document.getElementById('serverUrl');
   let url = serverUrlInput ? serverUrlInput.value.trim() : '';
   if (!url) {
-    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    url = `${proto}//${location.host}`;
+    const isLocal = ['localhost', '127.0.0.1', '192.168.29.63'].includes(location.hostname);
+    url = isLocal ? `ws://${location.hostname}:3000` : `wss://ludo-ole4.onrender.com`;
   }
 
   if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
@@ -218,9 +219,10 @@ function testServerConnection() {
   const serverUrlInput = document.getElementById('serverUrl');
   let url = serverUrlInput ? serverUrlInput.value.trim() : '';
   if (!url) {
-    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    url = `${proto}//${location.host}`;
+    const isLocal = ['localhost', '127.0.0.1', '192.168.29.63'].includes(location.hostname);
+    url = isLocal ? `ws://${location.hostname}:3000` : `wss://ludo-ole4.onrender.com`;
   }
+
   if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
     url = (location.protocol === 'https:' ? 'wss://' : 'ws://') + url;
   }

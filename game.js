@@ -270,8 +270,8 @@ function initOnlineGame() {
 function reconnectWS() {
   let url = sessionStorage.getItem('serverUrl') || localStorage.getItem('serverUrl');
   if (!url) {
-    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    url = `${proto}//${location.host}`;
+    const isLocal = ['localhost', '127.0.0.1', '192.168.29.63'].includes(location.hostname);
+    url = isLocal ? `ws://${location.hostname}:3000` : `wss://ludo-ole4.onrender.com`;
   }
   if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
     url = (location.protocol === 'https:' ? 'wss://' : 'ws://') + url;
