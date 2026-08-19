@@ -60,7 +60,10 @@
 
     <!-- Step 2: Sub-options (Online / Offline) -->
     <section class="step hidden" id="stepSubOptions">
-      <button class="back-btn" onclick="goBack()"><span>←</span> BACK</button>
+      <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+        <button class="back-btn" onclick="goBack()"><span>←</span> BACK</button>
+        <button class="gift-btn hidden" id="giftDownloadBtn" onclick="downloadGift()">🎁 DOWNLOAD GIFT</button>
+      </div>
 
       <div class="sub-header" id="subHeader">
         <span class="sub-icon" id="subIcon">🎲</span>

@@ -63,6 +63,16 @@ function selectMainMode(mode) {
     document.getElementById('cutieBgHome').classList.add('active');
     document.getElementById('cutieVideos').classList.add('active');
     document.getElementById('ludoBg').classList.remove('active');
+    
+    // Show download gift button
+    document.getElementById('giftDownloadBtn').classList.remove('hidden');
+
+    // Force play videos on user click gesture (for mobile autoplay)
+    const videos = document.querySelectorAll('#cutieVideos video');
+    videos.forEach(v => {
+      v.muted = true;
+      v.play().catch(e => console.log('Video play failed:', e));
+    });
 
     document.getElementById('subIcon').textContent  = '🌸';
     document.getElementById('subTitle').textContent = 'Cutie Perk Mode';
@@ -73,6 +83,9 @@ function selectMainMode(mode) {
     document.getElementById('cutieBgHome').classList.remove('active');
     document.getElementById('cutieVideos').classList.remove('active');
     document.getElementById('ludoBg').classList.add('active');
+    
+    // Hide download gift button
+    document.getElementById('giftDownloadBtn').classList.add('hidden');
 
     document.getElementById('subIcon').textContent  = '🎲';
     document.getElementById('subTitle').textContent = 'LUDO ROYALE';
@@ -89,6 +102,19 @@ function goBack() {
   document.getElementById('cutieBgHome').classList.remove('active');
   document.getElementById('cutieVideos').classList.remove('active');
   document.getElementById('ludoBg').classList.add('active');
+  
+  // Hide download gift button
+  document.getElementById('giftDownloadBtn').classList.add('hidden');
+}
+
+function downloadGift() {
+  const link = document.createElement('a');
+  link.href = 'bcg.png';
+  link.download = 'gift.png';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('🎁 Gift downloaded as gift.png! 🌸', 'success');
 }
 
 // ─── Background init ──────────────────────────────────
