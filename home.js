@@ -109,7 +109,7 @@ function goBack() {
 
 function downloadGift() {
   const link = document.createElement('a');
-  link.href = 'bcg.png';
+  link.href = 'gift.png';
   link.download = 'gift.png';
   document.body.appendChild(link);
   link.click();
