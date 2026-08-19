@@ -284,7 +284,8 @@ wss.on('connection', (ws) => {
         if (pIdx !== gs.currentPlayer) return;
         if (!gs.diceRolled) return;
 
-        const result = applyMove(gs, pIdx, msg.pieceIndex);
+        const pieceIdx = msg.pieceIdx !== undefined ? msg.pieceIdx : msg.pieceIndex;
+        const result = applyMove(gs, pIdx, pieceIdx);
         if (!result.valid) return;
 
         gs.diceRolled = false;
@@ -416,13 +417,13 @@ function applyMove(gs, playerIdx, pieceIdx) {
       player.pieces[pieceIdx] = newRel;
       
       // Kill check
-      const absPos = (PLAYER_START[playerIdx] + newRel) % TRACK_SIZE;
+      const absPos = (PLAYER_START[player.slot] + newRel) % TRACK_SIZE;
       if (!SAFE_ABS.has(absPos)) {
         gs.players.forEach((other, oi) => {
           if (oi === playerIdx) return;
           other.pieces.forEach((oPos, pi) => {
             if (oPos < 0 || oPos === 999 || oPos >= 100) return;
-            const otherAbs = (PLAYER_START[oi] + oPos) % TRACK_SIZE;
+            const otherAbs = (PLAYER_START[other.slot] + oPos) % TRACK_SIZE;
             if (otherAbs === absPos) {
               other.pieces[pi] = -1; // send home
               killed = true;
