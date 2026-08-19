@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ludo Royale 🎲 — Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="game-body" id="gameBody">
+
+  <!-- ── Particle Canvas ── -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- ── Background Layers ── -->
+  <div class="game-bg-layer cutie-bg-game"  id="cutieBgGame"></div>
+  <div class="game-bg-layer lovers-bg-game" id="loversBgGame"></div>
+
+  <!-- ════════════════════ GAME WRAP ════════════════════ -->
+  <div class="game-wrap">
+
+    <!-- ── Top Bar ── -->
+    <header class="top-bar">
+      <div class="room-pill">
+        <span id="roomDisplay">LUDO</span>
+        <strong id="roomIdDisplay">—</strong>
+      </div>
+      <div class="turn-display" id="turnDisplay">Loading…</div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <div id="loveBtnContainer" class="love-shower-btns hidden">
+          <button class="love-btn" onclick="sendLoveShower('rose')"  title="Send roses">🌹</button>
+          <button class="love-btn" onclick="sendLoveShower('heart')" title="Send hearts">💕</button>
+        </div>
+        <button class="home-btn" onclick="goHome()">🏠 HOME</button>
+      </div>
+    </header>
+
+    <!-- ── Players Bar ── -->
+    <div class="players-bar" id="playersBar"></div>
+
+    <!-- ── Game Arena ── -->
+    <main class="game-arena">
+
+      <!-- Board SVG -->
+      <div class="board-wrap">
+        <svg id="board-svg" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+
+      <!-- Side Panel: Dice + Actions -->
+      <aside class="side-panel">
+
+        <div class="dice-area">
+          <div id="dice" onclick="rollDice()">🎲</div>
+          <button class="roll-btn" id="rollBtn" onclick="rollDice()">🎲 ROLL</button>
+          <div class="last-roll">Last: <span id="lastRollDisplay">—</span></div>
+        </div>
+
+        <!-- Lovers room only -->
+        <div class="love-btns hidden" id="loveButtons">
+          <button class="love-btn" onclick="sendLoveShower('rose')">🌹 Send Roses</button>
+          <button class="love-btn" onclick="sendLoveShower('heart')">💕 Send Hearts</button>
+        </div>
+
+      </aside>
+    </main>
+
+    <!-- ── Bottom Bar ── -->
+    <footer class="bottom-bar">
+
+      <!-- Emote Feed -->
+      <div class="emote-feed" id="emoteFeed"></div>
+
+      <!-- Emote Buttons -->
+      <div class="emote-bar" id="emoteBar">
+        <button class="emote-btn" onclick="sendEmote('😂 hahaha')">😂 hahaha</button>
+        <button class="emote-btn" onclick="sendEmote('💀 jaane de yaar jeet')">💀 jaane de yaar jeet</button>
+        <button class="emote-btn" onclick="sendEmote('😤 jaane de yaar harshiii')">😤 jaane de yaar harshiii</button>
+        <button class="emote-btn" onclick="sendEmote('❤️ love you')" id="emoteloveyou">❤️ love you</button>
+        <button class="emote-btn" onclick="sendEmote('🚀 chaloooo')">🚀 chaloooo</button>
+        <button class="emote-btn" onclick="sendEmote('👋 nikalooo')">👋 nikalooo</button>
+        <button class="emote-btn" onclick="sendEmote('🙏 sorryyy')">🙏 sorryyy</button>
+        <button class="emote-btn" onclick="sendEmote('👑 daddy bolo')">👑 daddy bolo</button>
+        <button class="emote-btn" onclick="sendEmote('👸 mommy bolo')">👸 mommy bolo</button>
+        <button class="emote-btn" onclick="sendEmote('⚡ god hu mei')">⚡ god hu mei</button>
+      </div>
+
+    </footer>
+  </div>
+
+  <!-- ════════════ LOVE QUESTION MODAL ════════════ -->
+  <div class="love-modal hidden" id="loveModal">
+    <div class="love-modal-box">
+      <div class="love-question-title">💖 A Special Moment 💖</div>
+      <div class="love-question-text" id="loveQuestionText">
+        Do you love this person?
+      </div>
+      <div class="love-q-buttons">
+        <button class="love-q-yes" onclick="answerLoveQuestion(true)">💖 YES!</button>
+        <button class="love-q-no"  onclick="answerLoveQuestion(false)">Nah 😅</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ WIN SCREEN ════════════ -->
+  <div class="win-screen hidden" id="winScreen">
+    <div class="win-box">
+      <span class="win-emoji">🏆</span>
+      <h2 class="win-title" id="winTitle">Player Wins!</h2>
+      <p class="win-sub" id="winSub">The Ludo Champion has been crowned 👑</p>
+      <div>
+        <button class="win-home-btn" onclick="goHome()">🏠 Home</button>
+        <button class="win-home-btn" onclick="location.reload()" style="background:rgba(255,255,255,0.1);color:var(--text)">🔄 Rematch</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>

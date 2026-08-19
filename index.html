@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ludo Royale 🎲</title>
+  <meta name="description" content="Play Ludo online or offline — with a special Cutie Perk Mode just for you."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body id="homeBody" class="home-body">
+
+  <!-- ── Particle Canvas ── -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- ── Background Layers ── -->
+  <div class="bg-layer ludo-bg"   id="ludoBg"></div>
+  <div class="bg-layer cutie-bg-home" id="cutieBgHome"></div>
+
+  <!-- ── Cutie Video Panels (shown in Cutie mode) ── -->
+  <div class="cutie-video-panels" id="cutieVideos">
+    <div class="video-panel left-panel">
+      <video src="v1.mp4" autoplay loop muted playsinline></video>
+    </div>
+    <div class="video-panel right-panel">
+      <video src="v2.mp4" autoplay loop muted playsinline></video>
+    </div>
+  </div>
+
+  <!-- ── Main Content ── -->
+  <main class="home-main">
+
+    <!-- Step 1: Mode Selection -->
+    <section class="step" id="stepMode">
+      <div class="home-logo" id="homeLogo">
+        <span class="logo-icon">🎲</span>
+        <h1 class="logo-title">LUDO<span class="logo-accent"> ROYALE</span></h1>
+        <p class="logo-sub">Choose your experience</p>
+      </div>
+
+      <div class="hero-cards" id="heroCards">
+        <div class="hero-card neon-card" id="ludoCard" onclick="selectMainMode('ludo')">
+          <div class="card-glow"></div>
+          <span class="card-icon">🎲</span>
+          <h2>LUDO ROYALE</h2>
+          <p>Epic board battles with friends or online players</p>
+          <div class="card-arrow">→</div>
+        </div>
+
+        <div class="hero-card cutie-card" id="cutieCard" onclick="selectMainMode('cutie')">
+          <div class="card-glow cutie-glow"></div>
+          <span class="card-icon">🌸</span>
+          <h2>Cutie Perk Mode</h2>
+          <p>A magical experience made just for you 💖</p>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 2: Sub-options (Online / Offline) -->
+    <section class="step hidden" id="stepSubOptions">
+      <button class="back-btn" onclick="goBack()"><span>←</span> BACK</button>
+
+      <div class="sub-header" id="subHeader">
+        <span class="sub-icon" id="subIcon">🎲</span>
+        <h2 id="subTitle">LUDO ROYALE</h2>
+        <p id="subDesc">How do you want to play?</p>
+      </div>
+
+      <div class="sub-cards" id="subCards">
+        <div class="sub-card" id="onlineSubCard" onclick="openOnlineModal()">
+          <div class="sub-card-inner">
+            <span class="sub-card-icon">🌐</span>
+            <h3>ONLINE</h3>
+            <p>Play with friends from different devices</p>
+            <div class="sub-badge">2-digit room code</div>
+          </div>
+        </div>
+
+        <div class="sub-card" id="offlineSubCard" onclick="openOfflineModal()">
+          <div class="sub-card-inner">
+            <span class="sub-card-icon">🎮</span>
+            <h3>OFFLINE</h3>
+            <p>Pass and play on one device</p>
+            <div class="sub-badge">2-8 players</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ────────────────────────────────────────────────
+       MODALS
+  ──────────────────────────────────────────────── -->
+
+  <!-- Offline Modal -->
+  <div class="modal-overlay hidden" id="offlineModal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('offlineModal')">✕</button>
+      <h2 class="modal-title">🎮 Offline Game</h2>
+
+      <div class="form-group">
+        <label>Your Name</label>
+        <input id="offlineName" type="text" placeholder="Enter your name" maxlength="16" autocomplete="off"/>
+      </div>
+
+      <div class="form-group">
+        <label>Number of Players</label>
+        <div class="count-row" id="offlinePlayerCount">
+          <button class="count-btn selected" data-count="2" onclick="selectCount(this,'offline')">2</button>
+          <button class="count-btn" data-count="3" onclick="selectCount(this,'offline')">3</button>
+          <button class="count-btn" data-count="4" onclick="selectCount(this,'offline')">4</button>
+          <button class="count-btn" data-count="6" onclick="selectCount(this,'offline')">6</button>
+          <button class="count-btn" data-count="8" onclick="selectCount(this,'offline')">8</button>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="startOfflineGame()">🚀 START GAME</button>
+    </div>
+  </div>
+
+  <!-- Online Modal -->
+  <div class="modal-overlay hidden" id="onlineModal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('onlineModal')">✕</button>
+      <h2 class="modal-title">🌐 Online Game</h2>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" id="createTabBtn" onclick="switchTab('create')">Create Room</button>
+        <button class="tab-btn" id="joinTabBtn" onclick="switchTab('join')">Join Room</button>
+      </div>
+
+      <!-- Create Tab -->
+      <div class="tab-pane active" id="createPane">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input id="createName" type="text" placeholder="Enter your name" maxlength="16" autocomplete="off"/>
+        </div>
+
+        <div class="form-group">
+          <label>Players Allowed</label>
+          <div class="count-row" id="onlinePlayerCount">
+            <button class="count-btn selected" data-count="2" onclick="selectCount(this,'online')">2</button>
+            <button class="count-btn" data-count="3" onclick="selectCount(this,'online')">3</button>
+            <button class="count-btn" data-count="4" onclick="selectCount(this,'online')">4</button>
+            <button class="count-btn" data-count="6" onclick="selectCount(this,'online')">6</button>
+            <button class="count-btn" data-count="8" onclick="selectCount(this,'online')">8</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Room Type</label>
+          <div class="room-type-row">
+            <button class="room-type-btn selected" id="friendsTypeBtn" onclick="selectRoomType('friends')">
+              <span>👥</span> Friends Room
+            </button>
+            <button class="room-type-btn" id="loversTypeBtn" onclick="selectRoomType('lovers')">
+              <span>💖</span> Lovers Room
+            </button>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="createOnlineRoom()">🏠 CREATE ROOM</button>
+      </div>
+
+      <!-- Join Tab -->
+      <div class="tab-pane" id="joinPane">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input id="joinName" type="text" placeholder="Enter your name" maxlength="16" autocomplete="off"/>
+        </div>
+
+        <div class="form-group">
+          <label>Room ID (2 digits)</label>
+          <input id="joinRoomId" type="text" placeholder="e.g. 42" maxlength="2" autocomplete="off"
+                 style="letter-spacing:0.3em;font-size:1.4rem;text-align:center;"/>
+        </div>
+
+        <button class="btn-primary" onclick="joinOnlineRoom()">🚪 JOIN ROOM</button>
+      </div>
+
+      <!-- Server Settings for Hosted Deployment -->
+      <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+        <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+          <span>WebSocket Server URL</span>
+          <span id="pingServerBtn" style="font-size: 0.75rem; text-transform: none; color: var(--accent-cyan); cursor: pointer;" onclick="testServerConnection()">Test Connection</span>
+        </label>
+        <input id="serverUrl" type="text" placeholder="e.g. wss://ludo-backend.onrender.com" autocomplete="off" style="font-size: 0.85rem; padding: 0.6rem 0.8rem;"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lobby Modal -->
+  <div class="modal-overlay hidden" id="lobbyModal">
+    <div class="modal-box">
+      <h2 class="modal-title">🎲 Lobby</h2>
+      <div class="lobby-room-id">
+        Room <span id="lobbyRoomId" style="font-size:2rem;font-weight:900;color:var(--accent-cyan)">--</span>
+        <button class="copy-btn" onclick="copyRoomId()">📋 Copy</button>
+      </div>
+      <div class="lobby-players" id="lobbyPlayers"></div>
+      <div id="hostActions" class="hidden">
+        <button class="btn-primary" id="startBtn" onclick="startOnlineGame()" disabled>
+          ⏳ Waiting for players…
+        </button>
+      </div>
+      <div id="guestWait" class="hidden">
+        <p class="waiting-text">Waiting for host to start…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="home.js"></script>
+</body>
+</html>

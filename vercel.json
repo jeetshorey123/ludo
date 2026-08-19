@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "routes": [
+    { "src": "/index.html", "dest": "/index.html" },
+    { "src": "/game.html", "dest": "/game.html" },
+    { "src": "/home.js", "dest": "/home.js" },
+    { "src": "/game.js", "dest": "/game.js" },
+    { "src": "/style.css", "dest": "/style.css" },
+    { "src": "/bcg.png", "dest": "/bcg.png" },
+    { "src": "/ludo.png", "dest": "/ludo.png" },
+    { "src": "/v1.mp4", "dest": "/v1.mp4" },
+    { "src": "/v2.mp4", "dest": "/v2.mp4" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "ludo-royale",
+  "version": "1.0.0",
+  "description": "Ludo Royale - The Ultimate Multiplayer Ludo Game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.17.0"
+  }
+}
